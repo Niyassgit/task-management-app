@@ -2,7 +2,6 @@ import express from "express";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import cors from "cors";
-import "dotenv/config";
 import morgan from "morgan";
 
 const app = express();
@@ -16,7 +15,7 @@ app.use(
   }),
 );
 
-app.use("/auth", authRoutes);
-app.use("/user", userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 
 export default app;

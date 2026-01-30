@@ -4,7 +4,6 @@ import type { loginDTO, registerUserDTO } from "./Schema";
 
 export const login = async (data: loginDTO) => {
   const res = await api.post(authEndpoints.login, data);
-
   return res.data;
 };
 

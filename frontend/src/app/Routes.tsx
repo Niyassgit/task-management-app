@@ -3,13 +3,23 @@ import LandingPage from "../features/landing/LandingPage";
 import { userRoutes } from "../routes/UserRoute";
 import LoginPage from "../features/auth/pages/LoginPage";
 import SignupPage from "../features/auth/pages/SignupPage";
+import ProtectedRoute from "../routes/ProtectedRoute";
+import PublicRoute from "../routes/PublicRoute";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <LandingPage />,
+    element: <PublicRoute />,
+    children: [
+      {
+        path: "/",
+        element: <LandingPage />,
+      },
+      { path: "/login", element: <LoginPage /> },
+      { path: "/signup", element: <SignupPage /> },
+    ],
   },
-  { path: "/login", element: <LoginPage /> },
-  { path: "/signup", element: <SignupPage /> },
-  userRoutes,
+  {
+    element: <ProtectedRoute />,
+    children: [userRoutes],
+  },
 ]);

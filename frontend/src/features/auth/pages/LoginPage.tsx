@@ -32,12 +32,16 @@ const LoginPage = () => {
       return;
     }
     setFieldErrors({});
-
     setIsLoading(true);
+
     try {
-      const data = await loginApi({ email, password });
-      dispatch(login({ token: data.token, user: data.user }));
-      navigate("/user/Dashboard");
+      const response = await loginApi({ email, password });
+      if (response.success) {
+        dispatch(login({ token: response.token, user: response.user }));
+        navigate("/user/Dashboard");
+      } else {
+        setError(response.message || "Login failed");
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed. Please check your credentials.");
     } finally {

@@ -46,7 +46,7 @@ export const login = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    const compare = bcrypt.compare(password, userExist.password);
+    const compare = await bcrypt.compare(password, userExist.password);
 
     if (!compare) {
       return res
@@ -55,7 +55,7 @@ export const login = async (req, res) => {
     }
 
     const payload = {
-      userId: userExist.distinct,
+      userId: userExist._id,
       role: userExist.role,
     };
 
@@ -65,7 +65,13 @@ export const login = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: { message: "User logged in successfully", token },
+      message: "User logged in successfully",
+      token,
+      user: {
+        userId: userExist._id,
+        name: userExist.name,
+        role: userExist.role,
+      },
     });
   } catch {
     res.status(500).json({ success: false, message: "Login failed" });

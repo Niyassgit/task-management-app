@@ -1,0 +1,22 @@
+import express from "express";
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import cors from "cors";
+import "dotenv/config";
+import morgan from "morgan";
+
+const app = express();
+app.use(express.json());
+const ORIGIN = process.env.ORIGIN;
+app.use(morgan("dev"));
+app.use(
+  cors({
+    origin: ORIGIN,
+    credentials: true,
+  }),
+);
+
+app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
+
+export default app;

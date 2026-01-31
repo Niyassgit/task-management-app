@@ -5,8 +5,8 @@ export const userRoutes: RouteObject = {
   path: "user",
   children: [
     {
-      path: "Dashboard",
-      element:<UserDashboard />
+      path: "dashboard",
+      element: <UserDashboard />
     },
   ],
 };

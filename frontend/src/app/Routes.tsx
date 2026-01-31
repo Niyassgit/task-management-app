@@ -6,6 +6,7 @@ import LoginPage from "../features/auth/pages/LoginPage";
 import SignupPage from "../features/auth/pages/SignupPage";
 import ProtectedRoute from "../routes/ProtectedRoute";
 import PublicRoute from "../routes/PublicRoute";
+import RoleProtectedRoute from "../routes/RoleProtectedRoute";
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,15 @@ export const router = createBrowserRouter([
   },
   {
     element: <ProtectedRoute />,
-    children: [userRoutes, adminRoutes],
+    children: [
+      {
+        element: <RoleProtectedRoute allowedRoles={["user"]} />,
+        children: [userRoutes],
+      },
+      {
+        element: <RoleProtectedRoute allowedRoles={["admin"]} />,
+        children: [adminRoutes],
+      },
+    ],
   },
 ]);

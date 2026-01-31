@@ -40,9 +40,9 @@ const LoginPage = () => {
         dispatch(login({ token: response.token, user: response.user }));
 
         if (response.user?.role?.toLowerCase() === "admin") {
-          navigate("/admin/Dashboard");
+          navigate("/admin/dashboard");
         } else {
-          navigate("/user/Dashboard");
+          navigate("/user/dashboard");
         }
       } else {
         setError(response.message || "Login failed");

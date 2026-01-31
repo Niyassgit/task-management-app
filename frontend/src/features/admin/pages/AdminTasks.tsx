@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
     Search,
@@ -13,7 +13,6 @@ import type { AdminContextType, Task } from "../types";
 import { TaskStatus, TaskPriority } from "../types";
 import { createTask, updateTask, deleteTask as deleteTaskApi } from "../api";
 import { toast } from "react-toastify";
-import { connectSocket } from "../../../socket/socket";
 
 const AdminTasks: React.FC = () => {
     const { tasks, setTasks, users, searchQuery, setSearchQuery } =

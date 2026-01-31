@@ -1,60 +1,52 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../../hooks/redux";
 import { logout } from "../../auth/authSlice";
 import AdminSidebar from "../components/AdminSidebar";
 import { Menu } from "lucide-react";
 import type { Task, User, AdminContextType } from "../types";
+import { getAllTasks, getAllUsers as fetchUsers } from "../api";
+import { TaskStatus, TaskPriority } from "../types";
 
 const AdminLayout: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [tasks, setTasks] = useState<Task[]>([
-        {
-            id: "1",
-            title: "Design new landing page",
-            description: "Create a modern landing page for the core product.",
-            assignee: "Sarah Chen",
-            status: "in-progress",
-            priority: "high",
-            dueDate: "2026-02-05",
-        },
-        {
-            id: "2",
-            title: "Fix authentication bug",
-            description: "Users reporting issues with OAuth login flow.",
-            assignee: "Mike Johnson",
-            status: "completed",
-            priority: "high",
-            dueDate: "2026-01-30",
-        },
-        {
-            id: "3",
-            title: "Update documentation",
-            description: "Add new API endpoints to the dev guide.",
-            assignee: "Emma Davis",
-            status: "pending",
-            priority: "low",
-            dueDate: "2026-02-10",
-        },
-        {
-            id: "4",
-            title: "API integration",
-            description: "Connect the frontend to the new microservice.",
-            assignee: "Sarah Chen",
-            status: "in-progress",
-            priority: "medium",
-            dueDate: "2026-02-08",
-        },
-    ]);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
 
-    const users: User[] = [
-        { id: "1", name: "Sarah Chen", role: "Frontend Developer" },
-        { id: "2", name: "Mike Johnson", role: "Backend Developer" },
-        { id: "3", name: "Emma Davis", role: "Designer" },
-    ];
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [tasksData, usersData] = await Promise.all([
+                    getAllTasks(),
+                    fetchUsers()
+                ]);
+
+                // Map backend data to frontend interface
+                const mappedTasks = tasksData.map((t: any) => ({
+                    ...t,
+                    id: t._id, // Map mongo _id to id
+                    dueDate: t.overDue, // Map backend 'overDue' to frontend 'dueDate'
+                    assignee: t.assignee?.name || "Unassigned"
+                }));
+
+                const mappedUsers = usersData.map((u: any) => ({
+                    id: u._id,
+                    name: u.name,
+                    role: u.role
+                }));
+
+                setTasks(mappedTasks);
+                setUsers(mappedUsers);
+            } catch (error) {
+                console.error("Failed to fetch admin data:", error);
+            }
+        };
+
+        loadData();
+    }, []);
 
     const handleLogout = () => {
         dispatch(logout());

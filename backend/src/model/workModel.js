@@ -30,8 +30,8 @@ const workModel = new Schema(
 
     status: {
       type: String,
-      enum: ["TO DO", "IN PROGRESS", "COMPLETED", "OVERDUE"],
-      default: "TO DO",
+      enum: ["TO_DO", "IN_PROGRESS", "COMPLETED", "OVERDUE"],
+      default: "TO_DO",
     },
   },
   { timestamps: true },

@@ -76,11 +76,11 @@ export const createWork = async (req, res) => {
 
 export const updateWork = async (req, res) => {
   try {
-    const { workId } = req.params;
+    const { taskId } = req.params;
     const { title, description, overDue, assignee, priority, status } = req.body;
 
     const work = await Work.findByIdAndUpdate(
-      workId,
+      taskId,
       {
         title,
         description,
@@ -115,8 +115,8 @@ export const updateWork = async (req, res) => {
 
 export const deleteWork = async (req, res) => {
   try {
-    const { workId } = req.params;
-    const work = await Work.findByIdAndDelete(workId);
+    const { taskId } = req.params;
+    const work = await Work.findByIdAndDelete(taskId);
 
     if (!work) {
       return res.status(404).json({

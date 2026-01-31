@@ -8,6 +8,8 @@ import {
     AlertCircle
 } from "lucide-react";
 import type { AdminContextType, Task } from "../types";
+import { TaskStatus, TaskPriority } from "../types";
+import { createTask } from "../api";
 
 const AdminTasks: React.FC = () => {
     const { tasks, setTasks, users, searchQuery, setSearchQuery } = useOutletContext<AdminContextType>();
@@ -16,13 +18,13 @@ const AdminTasks: React.FC = () => {
         title: string;
         description: string;
         assignee: string;
-        priority: "low" | "medium" | "high";
+        priority: TaskPriority;
         dueDate: string;
     }>({
         title: "",
         description: "",
         assignee: "",
-        priority: "medium",
+        priority: TaskPriority.MEDIUM,
         dueDate: "",
     });
 
@@ -33,23 +35,36 @@ const AdminTasks: React.FC = () => {
         );
     }, [tasks, searchQuery]);
 
-    const handleCreateTask = () => {
+    const handleCreateTask = async () => {
         if (newTask.title && newTask.assignee && newTask.dueDate) {
-            const taskId = tasks.length > 0
-                ? String(Math.max(...tasks.map(t => parseInt(t.id))) + 1)
-                : "1";
-            const task: Task = {
-                id: taskId,
-                title: newTask.title,
-                description: newTask.description,
-                assignee: newTask.assignee,
-                status: "pending",
-                priority: newTask.priority,
-                dueDate: newTask.dueDate,
-            };
-            setTasks([...tasks, task]);
-            setNewTask({ title: "", description: "", assignee: "", priority: "medium", dueDate: "" });
-            setShowCreateModal(false);
+            try {
+                const assigneeUser = users.find(u => u.name === newTask.assignee);
+
+                const taskPayload = {
+                    title: newTask.title,
+                    description: newTask.description,
+                    assignee: assigneeUser?.id || "",
+                    status: TaskStatus.TO_DO,
+                    priority: newTask.priority,
+                    overDue: newTask.dueDate, // Backend field name
+                };
+
+                const createdTask = await createTask(taskPayload as any);
+
+                // Add the new task to state (with mapping)
+                const mappedTask: Task = {
+                    ...createdTask,
+                    id: createdTask._id,
+                    dueDate: createdTask.overDue,
+                    assignee: newTask.assignee // Use the name for UI
+                };
+
+                setTasks([...tasks, mappedTask]);
+                setNewTask({ title: "", description: "", assignee: "", priority: TaskPriority.MEDIUM, dueDate: "" });
+                setShowCreateModal(false);
+            } catch (error) {
+                console.error("Failed to create task:", error);
+            }
         }
     };
 
@@ -109,8 +124,8 @@ const AdminTasks: React.FC = () => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${task.priority === 'high' ? 'bg-rose-50 text-rose-600' :
-                                        task.priority === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-500'
+                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${task.priority === TaskPriority.HIGH ? 'bg-rose-50 text-rose-600' :
+                                        task.priority === TaskPriority.MEDIUM ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-500'
                                         }`}>
                                         {task.priority}
                                     </span>
@@ -122,13 +137,13 @@ const AdminTasks: React.FC = () => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg font-bold text-xs ${task.status === 'completed' ? 'text-emerald-600 bg-emerald-50' :
-                                        task.status === 'in-progress' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 bg-slate-50'
+                                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg font-bold text-xs ${task.status === TaskStatus.COMPLETED ? 'text-emerald-600 bg-emerald-50' :
+                                        task.status === TaskStatus.IN_PROGRESS ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 bg-slate-50'
                                         }`}>
-                                        <div className={`w-1.5 h-1.5 rounded-full ${task.status === 'completed' ? 'bg-emerald-600' :
-                                            task.status === 'in-progress' ? 'bg-indigo-600' : 'bg-slate-400'
+                                        <div className={`w-1.5 h-1.5 rounded-full ${task.status === TaskStatus.COMPLETED ? 'bg-emerald-600' :
+                                            task.status === TaskStatus.IN_PROGRESS ? 'bg-indigo-600' : 'bg-slate-400'
                                             }`} />
-                                        {task.status.replace('-', ' ')}
+                                        {task.status.replace('_', ' ')}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-right">
@@ -180,10 +195,10 @@ const AdminTasks: React.FC = () => {
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Priority</label>
                                 <div className="flex gap-3">
-                                    {["low", "medium", "high"].map((p) => (
+                                    {Object.values(TaskPriority).map((p) => (
                                         <button
                                             key={p}
-                                            onClick={() => setNewTask({ ...newTask, priority: p as any })}
+                                            onClick={() => setNewTask({ ...newTask, priority: p })}
                                             className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${newTask.priority === p
                                                 ? "bg-slate-900 text-white shadow-lg shadow-slate-200"
                                                 : "bg-slate-50 text-slate-400 hover:bg-slate-100"

@@ -8,6 +8,7 @@ import {
     CheckSquare
 } from "lucide-react";
 import type { AdminContextType } from "../types";
+import { TaskStatus, TaskPriority } from "../types";
 
 const AdminOverview: React.FC = () => {
     const { tasks, searchQuery, setSearchQuery } = useOutletContext<AdminContextType>();
@@ -17,7 +18,7 @@ const AdminOverview: React.FC = () => {
     };
 
     const completionRate = tasks.length > 0
-        ? Math.round((getStatusCount("completed") / tasks.length) * 100)
+        ? Math.round((getStatusCount(TaskStatus.COMPLETED) / tasks.length) * 100)
         : 0;
 
     return (
@@ -44,8 +45,8 @@ const AdminOverview: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                 {[
                     { label: "Total Tasks", value: tasks.length, icon: CheckSquare, color: "bg-indigo-50" },
-                    { label: "In Progress", value: getStatusCount("in-progress"), icon: Clock, color: "bg-blue-50" },
-                    { label: "Completed", value: getStatusCount("completed"), icon: CheckCircle2, color: "bg-emerald-50" },
+                    { label: "In Progress", value: getStatusCount(TaskStatus.IN_PROGRESS), icon: Clock, color: "bg-blue-50" },
+                    { label: "Completed", value: getStatusCount(TaskStatus.COMPLETED), icon: CheckCircle2, color: "bg-emerald-50" },
                     { label: "Efficiency", value: `${completionRate}%`, icon: ArrowUpRight, color: "bg-amber-50" },
                 ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
@@ -70,13 +71,13 @@ const AdminOverview: React.FC = () => {
                         {tasks.slice(0, 4).map((task) => (
                             <div key={task.id} className="p-6 hover:bg-slate-50/50 transition-colors flex items-center justify-between group">
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-2 h-2 rounded-full ${task.status === 'completed' ? 'bg-emerald-500' : task.status === 'in-progress' ? 'bg-blue-500' : 'bg-slate-300'}`} />
+                                    <div className={`w-2 h-2 rounded-full ${task.status === TaskStatus.COMPLETED ? 'bg-emerald-500' : task.status === TaskStatus.IN_PROGRESS ? 'bg-blue-500' : 'bg-slate-300'}`} />
                                     <div>
                                         <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{task.title}</p>
                                         <p className="text-sm text-slate-500 font-medium">{task.assignee} • Due {new Date(task.dueDate).toLocaleDateString()}</p>
                                     </div>
                                 </div>
-                                <div className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold ${task.priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-slate-50 text-slate-500'
+                                <div className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold ${task.priority === TaskPriority.HIGH ? 'bg-rose-50 text-rose-600' : 'bg-slate-50 text-slate-500'
                                     }`}>
                                     {task.priority}
                                 </div>

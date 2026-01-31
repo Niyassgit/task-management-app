@@ -18,9 +18,9 @@ const router = express.Router();
 
 router.use(authMiddleware, roleMiddleware("ADMIN"));
 router.get("/users", getAllUsers);
-router.get("/works", getAllWorksForAdmin);
-router.post("/createWork", validate(createWorkSchema), createWork);
-router.patch("/work/:workId", validate(updateWorkSchema), updateWork);
-router.delete("/work/:workId", deleteWork);
+router.get("/tasks", getAllWorksForAdmin);
+router.post("/task", validate(createWorkSchema), createWork);
+router.patch("/task/:taskId", validate(updateWorkSchema), updateWork);
+router.delete("/task/:taskId", deleteWork);
 
 export default router;

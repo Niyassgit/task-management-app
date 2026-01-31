@@ -27,6 +27,7 @@ export interface User {
     id: string;
     name: string;
     role: string;
+    workRole: string;
 }
 
 export interface AdminContextType {

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 export const signup = async (req, res) => {
   try {
-    const { name, email, password, phone, role } = req.body;
+    const { name, email, password, phone, role, workRole } = req.body;
     const userExist = await User.findOne({ email });
     if (userExist) {
       return res
@@ -17,6 +17,7 @@ export const signup = async (req, res) => {
       email,
       phone,
       role,
+      workRole,
       password: hashedpassword,
     });
 
@@ -71,6 +72,7 @@ export const login = async (req, res) => {
         userId: userExist._id,
         name: userExist.name,
         role: userExist.role,
+        workRole: userExist.workRole,
       },
     });
   } catch {

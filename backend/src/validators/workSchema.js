@@ -16,27 +16,37 @@ export const createWorkSchema = z.object({
 
     assignee: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid User ID"),
 
-    status: z.enum(["TO DO", "IN PROGRESS", "COMPLETED", "OVERDUE"]).optional(),
+    status: z
+      .enum(["TO_DO", "IN_PROGRESS", "COMPLETED", "OVERDUE"])
+      .optional(),
   }),
 });
 
-
 export const updateWorkSchema = z.object({
   body: z.object({
-    title: z.string().min(3, "Title must be at least 3 characters long").optional(),
+    title: z
+      .string()
+      .min(3, "Title must be at least 3 characters long")
+      .optional(),
 
     description: z
       .string()
-      .min(6, "Description must be at least 6 characters long").optional(),
+      .min(6, "Description must be at least 6 characters long")
+      .optional(),
 
-    overDue: z.string().refine((date) => !isNaN(Date.parse(date)).optional(), {
+    overDue: z.string().refine((date) => !isNaN(Date.parse(date)), {
       message: "Valid date is required",
     }),
 
-    priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional().optional(),
+    priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
 
-    assignee: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid User ID").optional(),
+    assignee: z
+      .string()
+      .regex(/^[0-9a-fA-F]{24}$/, "Invalid User ID")
+      .optional(),
 
-    status: z.enum(["TO DO", "IN PROGRESS", "COMPLETED", "OVERDUE"]).optional(),
+    status: z
+      .enum(["TO_DO", "IN_PROGRESS", "COMPLETED", "OVERDUE"])
+      .optional(),
   }),
 });

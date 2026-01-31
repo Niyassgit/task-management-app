@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 export const authMiddleware = (req, res, next) => {
   try {
     const token = req.headers.authorization;
-
     if (token && token.startsWith("Bearer ")) {
       const tokenString = token.substring(7);
       const decoded = jwt.verify(tokenString, process.env.JWT_SECRET);

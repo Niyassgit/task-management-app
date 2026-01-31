@@ -10,6 +10,7 @@ import {
 import type { AdminContextType, Task } from "../types";
 import { TaskStatus, TaskPriority } from "../types";
 import { createTask } from "../api";
+import { toast } from "react-toastify";
 
 const AdminTasks: React.FC = () => {
     const { tasks, setTasks, users, searchQuery, setSearchQuery } = useOutletContext<AdminContextType>();
@@ -28,6 +29,12 @@ const AdminTasks: React.FC = () => {
         dueDate: "",
     });
 
+    const [fieldErrors, setFieldErrors] = useState<{
+        title?: string;
+        assignee?: string;
+        dueDate?: string;
+    }>({});
+
     const filteredTasks = useMemo(() => {
         return tasks.filter(t =>
             t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -36,35 +43,46 @@ const AdminTasks: React.FC = () => {
     }, [tasks, searchQuery]);
 
     const handleCreateTask = async () => {
-        if (newTask.title && newTask.assignee && newTask.dueDate) {
-            try {
-                const assigneeUser = users.find(u => u.name === newTask.assignee);
+        const errors: typeof fieldErrors = {};
+        if (!newTask.title) errors.title = "Title is required";
+        if (!newTask.assignee) errors.assignee = "Assignee is required";
+        if (!newTask.dueDate) errors.dueDate = "Due date is required";
 
-                const taskPayload = {
-                    title: newTask.title,
-                    description: newTask.description,
-                    assignee: assigneeUser?.id || "",
-                    status: TaskStatus.TO_DO,
-                    priority: newTask.priority,
-                    overDue: newTask.dueDate, // Backend field name
-                };
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            return;
+        }
 
-                const createdTask = await createTask(taskPayload as any);
+        setFieldErrors({});
+        try {
+            const assigneeUser = users.find(u => u.name === newTask.assignee);
 
-                // Add the new task to state (with mapping)
-                const mappedTask: Task = {
-                    ...createdTask,
-                    id: createdTask._id,
-                    dueDate: createdTask.overDue,
-                    assignee: newTask.assignee // Use the name for UI
-                };
+            const taskPayload = {
+                title: newTask.title,
+                description: newTask.description,
+                assignee: assigneeUser?.id || "",
+                status: TaskStatus.TO_DO,
+                priority: newTask.priority,
+                overDue: newTask.dueDate, // Backend field name
+            };
 
-                setTasks([...tasks, mappedTask]);
-                setNewTask({ title: "", description: "", assignee: "", priority: TaskPriority.MEDIUM, dueDate: "" });
-                setShowCreateModal(false);
-            } catch (error) {
-                console.error("Failed to create task:", error);
-            }
+            const createdTask = await createTask(taskPayload as any);
+            toast.success("Task created successfully!");
+
+            // Add the new task to state (with mapping)
+            const mappedTask: Task = {
+                ...createdTask,
+                id: createdTask._id,
+                dueDate: createdTask.overDue,
+                assignee: newTask.assignee // Use the name for UI
+            };
+
+            setTasks([...tasks, mappedTask]);
+            setNewTask({ title: "", description: "", assignee: "", priority: TaskPriority.MEDIUM, dueDate: "" });
+            setShowCreateModal(false);
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to create task");
+            console.error("Failed to create task:", error);
         }
     };
 
@@ -180,6 +198,7 @@ const AdminTasks: React.FC = () => {
                                     value={newTask.title}
                                     onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                                 />
+                                {fieldErrors.title && <p className="text-red-500 text-xs pl-1 font-bold">{fieldErrors.title}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -221,6 +240,7 @@ const AdminTasks: React.FC = () => {
                                         <option value="">Select teammate</option>
                                         {users.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
                                     </select>
+                                    {fieldErrors.assignee && <p className="text-red-500 text-xs pl-1 font-bold">{fieldErrors.assignee}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Due Date</label>
@@ -230,6 +250,7 @@ const AdminTasks: React.FC = () => {
                                         value={newTask.dueDate}
                                         onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
                                     />
+                                    {fieldErrors.dueDate && <p className="text-red-500 text-xs pl-1 font-bold">{fieldErrors.dueDate}</p>}
                                 </div>
                             </div>
 

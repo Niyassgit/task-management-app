@@ -6,7 +6,6 @@ import AdminSidebar from "../components/AdminSidebar";
 import { Menu } from "lucide-react";
 import type { Task, User, AdminContextType } from "../types";
 import { getAllTasks, getAllUsers as fetchUsers } from "../api";
-import { TaskStatus, TaskPriority } from "../types";
 
 const AdminLayout: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -25,17 +24,17 @@ const AdminLayout: React.FC = () => {
                 ]);
 
                 // Map backend data to frontend interface
-                const mappedTasks = tasksData.map((t: any) => ({
+                const mappedTasks = (tasksData || []).map((t: any) => ({
                     ...t,
-                    id: t._id, // Map mongo _id to id
-                    dueDate: t.overDue, // Map backend 'overDue' to frontend 'dueDate'
+                    id: t._id,
+                    dueDate: t.overDue,
                     assignee: t.assignee?.name || "Unassigned"
                 }));
 
-                const mappedUsers = usersData.map((u: any) => ({
+                const mappedUsers = (usersData || []).map((u: any) => ({
                     id: u._id,
                     name: u.name,
-                    role: u.role
+                    role: u.workRole || u.role || "No Role" // Show workRole if available
                 }));
 
                 setTasks(mappedTasks);

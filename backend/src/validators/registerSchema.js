@@ -6,5 +6,6 @@ export const registerSchema = z.object({
     email: z.string().email("Email id is required"),
     phone: z.string().min(10, "Valid phone number is required"),
     password: z.string().min(4, "password must be inserted"),
+    workRole: z.string().min(2, "Work role is required"),
   }),
 });

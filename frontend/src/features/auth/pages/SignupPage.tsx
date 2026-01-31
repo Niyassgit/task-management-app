@@ -3,6 +3,9 @@ import { signup as signupApi } from "../api";
 import { useNavigate, Link } from "react-router-dom";
 import { registerSchema } from "../Schema";
 import AuthLayout from "../components/AuthLayout";
+import { toast } from "react-toastify";
+
+import { Eye, EyeOff } from "lucide-react";
 
 const SignupPage = () => {
     const [formData, setFormData] = useState({
@@ -11,16 +14,18 @@ const SignupPage = () => {
         phone: "",
         password: "",
         cpassword: "",
+        workRole: "",
     });
-    const [error, setError] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showCPassword, setShowCPassword] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<{
         name?: string;
         email?: string;
         phone?: string;
         password?: string;
         cpassword?: string;
+        workRole?: string;
     }>({});
-    const [success, setSuccess] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
@@ -31,8 +36,6 @@ const SignupPage = () => {
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
-        setSuccess(null);
 
         const validation = registerSchema.safeParse(formData);
         if (!validation.success) {
@@ -50,14 +53,12 @@ const SignupPage = () => {
         setIsLoading(true);
         try {
             await signupApi(formData);
-            setSuccess("Account created successfully! Redirecting to login...");
+            toast.success("Account created successfully! Redirecting to login...");
             setTimeout(() => {
                 navigate("/login");
             }, 2000);
         } catch (err: any) {
-            setError(
-                err.response?.data?.message || "Signup failed. Please try again.",
-            );
+            toast.error(err.response?.data?.message || "Signup failed. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -84,7 +85,7 @@ const SignupPage = () => {
                             onChange={handleChange}
                         />
                     </div>
-                    {fieldErrors.name && <p className="text-red-500 text-xs pl-4">{fieldErrors.name}</p>}
+                    {fieldErrors.name && <p className="text-red-500 text-xs pl-4 mt-1">{fieldErrors.name}</p>}
                 </div>
 
                 <div className="w-full flex flex-col gap-1">
@@ -98,7 +99,7 @@ const SignupPage = () => {
                             onChange={handleChange}
                         />
                     </div>
-                    {fieldErrors.email && <p className="text-red-500 text-xs pl-4">{fieldErrors.email}</p>}
+                    {fieldErrors.email && <p className="text-red-500 text-xs pl-4 mt-1">{fieldErrors.email}</p>}
                 </div>
 
                 <div className="w-full flex flex-col gap-1">
@@ -112,39 +113,69 @@ const SignupPage = () => {
                             onChange={handleChange}
                         />
                     </div>
-                    {fieldErrors.phone && <p className="text-red-500 text-xs pl-4">{fieldErrors.phone}</p>}
+                    {fieldErrors.phone && <p className="text-red-500 text-xs pl-4 mt-1">{fieldErrors.phone}</p>}
                 </div>
 
                 <div className="w-full flex flex-col gap-1">
-                    <div className="flex items-center w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 gap-2">
+                    <div className="flex items-center w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden px-6 gap-2">
+                        <select
+                            name="workRole"
+                            className="bg-transparent text-gray-500/80 outline-none text-sm w-full h-full appearance-none cursor-pointer"
+                            value={formData.workRole}
+                            onChange={(e) => setFormData(prev => ({ ...prev, workRole: e.target.value }))}
+                        >
+                            <option value="">Select Work Role</option>
+                            <option value="Frontend">Frontend Developer</option>
+                            <option value="Backend">Backend Developer</option>
+                            <option value="Design">UI/UX Designer</option>
+                            <option value="DevOps">DevOps Engineer</option>
+                            <option value="Fullstack">Fullstack Developer</option>
+                        </select>
+                    </div>
+                    {fieldErrors.workRole && <p className="text-red-500 text-xs pl-4 mt-1">{fieldErrors.workRole}</p>}
+                </div>
+
+                <div className="w-full flex flex-col gap-1">
+                    <div className="flex items-center w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 pr-4 gap-2">
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             placeholder="Password"
                             className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full"
                             value={formData.password}
                             onChange={handleChange}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                     </div>
-                    {fieldErrors.password && <p className="text-red-500 text-xs pl-4">{fieldErrors.password}</p>}
+                    {fieldErrors.password && <p className="text-red-500 text-xs pl-4 mt-1">{fieldErrors.password}</p>}
                 </div>
 
                 <div className="w-full flex flex-col gap-1">
-                    <div className="flex items-center w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 gap-2">
+                    <div className="flex items-center w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 pr-4 gap-2">
                         <input
-                            type="password"
+                            type={showCPassword ? "text" : "password"}
                             name="cpassword"
                             placeholder="Confirm Password"
                             className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full"
                             value={formData.cpassword}
                             onChange={handleChange}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowCPassword(!showCPassword)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            {showCPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                     </div>
-                    {fieldErrors.cpassword && <p className="text-red-500 text-xs pl-4">{fieldErrors.cpassword}</p>}
+                    {fieldErrors.cpassword && <p className="text-red-500 text-xs pl-4 mt-1">{fieldErrors.cpassword}</p>}
                 </div>
-
-                {error && <p className="text-red-500 text-sm">{error}</p>}
-                {success && <p className="text-green-500 text-sm">{success}</p>}
 
                 <button
                     type="submit"

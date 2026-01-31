@@ -16,6 +16,7 @@ export const registerSchema = z
       .regex(/^\d{10}$/, "Phone number must be exactly 10 digits"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     cpassword: z.string().min(6, "Confirm password is required"),
+    workRole: z.string().min(2, "Work role is required"),
   })
   .refine((data) => data.password === data.cpassword, {
     message: "Password do not match",

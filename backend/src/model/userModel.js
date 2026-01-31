@@ -26,6 +26,10 @@ const userModel = new Schema(
       enum: ["USER", "ADMIN"],
       default: "USER",
     },
+    workRole: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,

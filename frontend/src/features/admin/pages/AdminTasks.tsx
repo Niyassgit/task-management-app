@@ -4,29 +4,36 @@ import {
     Search,
     Plus,
     Calendar,
-    MoreVertical,
-    AlertCircle
+    AlertCircle,
+    Pencil,
+    Trash2,
+    X
 } from "lucide-react";
 import type { AdminContextType, Task } from "../types";
 import { TaskStatus, TaskPriority } from "../types";
-import { createTask } from "../api";
+import { createTask, updateTask, deleteTask as deleteTaskApi } from "../api";
 import { toast } from "react-toastify";
 
 const AdminTasks: React.FC = () => {
     const { tasks, setTasks, users, searchQuery, setSearchQuery } = useOutletContext<AdminContextType>();
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+
     const [newTask, setNewTask] = useState<{
         title: string;
         description: string;
         assignee: string;
         priority: TaskPriority;
         dueDate: string;
+        status?: TaskStatus;
     }>({
         title: "",
         description: "",
         assignee: "",
         priority: TaskPriority.MEDIUM,
         dueDate: "",
+        status: TaskStatus.TO_DO,
     });
 
     const [fieldErrors, setFieldErrors] = useState<{
@@ -42,7 +49,20 @@ const AdminTasks: React.FC = () => {
         );
     }, [tasks, searchQuery]);
 
-    const handleCreateTask = async () => {
+    const openEditModal = (task: Task) => {
+        setEditingTask(task);
+        setNewTask({
+            title: task.title,
+            description: task.description || "",
+            assignee: task.assignee,
+            priority: task.priority,
+            dueDate: new Date(task.dueDate).toISOString().split('T')[0],
+            status: task.status
+        });
+        setShowCreateModal(true);
+    };
+
+    const handleSaveTask = async () => {
         const errors: typeof fieldErrors = {};
         if (!newTask.title) errors.title = "Title is required";
         if (!newTask.assignee) errors.assignee = "Assignee is required";
@@ -56,34 +76,67 @@ const AdminTasks: React.FC = () => {
         setFieldErrors({});
         try {
             const assigneeUser = users.find(u => u.name === newTask.assignee);
-
             const taskPayload = {
                 title: newTask.title,
                 description: newTask.description,
-                assignee: assigneeUser?.id || "",
-                status: TaskStatus.TO_DO,
+                assignee: assigneeUser?.id || editingTask?.assignee || "",
+                status: newTask.status || TaskStatus.TO_DO,
                 priority: newTask.priority,
-                overDue: newTask.dueDate, // Backend field name
+                overDue: newTask.dueDate,
             };
 
-            const createdTask = await createTask(taskPayload as any);
-            toast.success("Task created successfully!");
+            if (editingTask) {
+                const result = await updateTask(editingTask.id, taskPayload as any);
+                const updatedTaskFromApi = result.data;
 
-            // Add the new task to state (with mapping)
-            const mappedTask: Task = {
-                ...createdTask,
-                id: createdTask._id,
-                dueDate: createdTask.overDue,
-                assignee: newTask.assignee // Use the name for UI
-            };
+                setTasks(tasks.map(t => t.id === editingTask.id ? {
+                    ...t,
+                    title: updatedTaskFromApi.title,
+                    description: updatedTaskFromApi.description,
+                    assignee: newTask.assignee, 
+                    priority: updatedTaskFromApi.priority,
+                    dueDate: updatedTaskFromApi.overDue,
+                    status: updatedTaskFromApi.status
+                } : t));
 
-            setTasks([...tasks, mappedTask]);
-            setNewTask({ title: "", description: "", assignee: "", priority: TaskPriority.MEDIUM, dueDate: "" });
-            setShowCreateModal(false);
+                toast.success("Task updated successfully!");
+            } else {
+                const createdTask = await createTask(taskPayload as any);
+                const mappedTask: Task = {
+                    ...createdTask,
+                    id: createdTask._id,
+                    dueDate: createdTask.overDue,
+                    assignee: newTask.assignee
+                };
+                setTasks([...tasks, mappedTask]);
+                toast.success("Task created successfully!");
+            }
+
+            resetForm();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to create task");
-            console.error("Failed to create task:", error);
+            toast.error(error.response?.data?.message || `Failed to ${editingTask ? 'update' : 'create'} task`);
+            console.error("Failed to save task:", error);
         }
+    };
+
+    const handleDeleteTask = async () => {
+        if (!taskToDelete) return;
+
+        try {
+            await deleteTaskApi(taskToDelete);
+            setTasks(tasks.filter(t => t.id !== taskToDelete));
+            toast.success("Task deleted successfully");
+            setTaskToDelete(null);
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to delete task");
+        }
+    };
+
+    const resetForm = () => {
+        setNewTask({ title: "", description: "", assignee: "", priority: TaskPriority.MEDIUM, dueDate: "", status: TaskStatus.TO_DO });
+        setShowCreateModal(false);
+        setEditingTask(null);
+        setFieldErrors({});
     };
 
     return (
@@ -165,9 +218,20 @@ const AdminTasks: React.FC = () => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <button className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-slate-200 shadow-sm opacity-0 group-hover:opacity-100">
-                                        <MoreVertical className="w-4 h-4 text-slate-400" />
-                                    </button>
+                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => openEditModal(task)}
+                                            className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-slate-200 shadow-sm text-slate-400 hover:text-indigo-600"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setTaskToDelete(task.id)}
+                                            className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-slate-200 shadow-sm text-slate-400 hover:text-rose-600"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -175,6 +239,7 @@ const AdminTasks: React.FC = () => {
                 </table>
             </div>
 
+            {/* Create/Edit Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
                     <div className="bg-white rounded-[32px] shadow-2xl max-w-lg w-full p-10 relative animate-in zoom-in-95 duration-300">
@@ -183,9 +248,11 @@ const AdminTasks: React.FC = () => {
                                 <div className="p-3 bg-indigo-50 rounded-2xl">
                                     <AlertCircle className="w-6 h-6 text-indigo-600" />
                                 </div>
-                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Create New Task</h2>
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                                    {editingTask ? 'Edit Task' : 'Create New Task'}
+                                </h2>
                             </div>
-                            <button onClick={() => setShowCreateModal(false)} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-50 transition-colors text-slate-400 text-2xl font-light">×</button>
+                            <button onClick={resetForm} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-50 transition-colors text-slate-400 text-2xl font-light">×</button>
                         </div>
 
                         <div className="space-y-6">
@@ -254,14 +321,54 @@ const AdminTasks: React.FC = () => {
                                 </div>
                             </div>
 
+                            {editingTask && (
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Status</label>
+                                    <select
+                                        className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-medium text-slate-900 appearance-none"
+                                        value={newTask.status}
+                                        onChange={(e) => setNewTask({ ...newTask, status: e.target.value as TaskStatus })}
+                                    >
+                                        {Object.values(TaskStatus).map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
+                                    </select>
+                                </div>
+                            )}
+
                             <div className="pt-8">
                                 <button
-                                    onClick={handleCreateTask}
+                                    onClick={handleSaveTask}
                                     className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-1 transition-all"
                                 >
-                                    Launch Task
+                                    {editingTask ? 'Save Changes' : 'Launch Task'}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {taskToDelete && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[60] p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[32px] shadow-2xl max-w-sm w-full p-8 text-center animate-in zoom-in-95 duration-300">
+                        <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <Trash2 className="w-8 h-8 text-rose-600" />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-900 mb-2">Are you sure?</h3>
+                        <p className="text-slate-500 font-medium mb-8">This action cannot be undone. This task will be permanently removed.</p>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setTaskToDelete(null)}
+                                className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-bold transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteTask}
+                                className="flex-1 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-bold shadow-lg shadow-rose-100 transition-all"
+                            >
+                                Delete
+                            </button>
                         </div>
                     </div>
                 </div>

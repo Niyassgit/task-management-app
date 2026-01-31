@@ -22,6 +22,10 @@ interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   overDue: string;
+  assignedBy: {
+    name: string;
+    workRole: string;
+  };
 }
 
 const UserDashboard = () => {
@@ -194,10 +198,16 @@ const UserDashboard = () => {
                       </p>
 
                       <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                        <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
-                          <div className="flex items-center gap-1.5">
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
                             <Clock className="w-3.5 h-3.5" />
                             <span>Due {new Date(task.overDue).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Assigned by</span>
+                            <span className="text-[10px] font-black text-indigo-600 px-2 py-0.5 bg-indigo-50 rounded-md">
+                              {task.assignedBy?.name || "Admin"} • {task.assignedBy?.workRole || "Admin"}
+                            </span>
                           </div>
                         </div>
 
@@ -206,10 +216,10 @@ const UserDashboard = () => {
                             value={task.status}
                             onChange={(e) => handleStatusChange(task._id, e.target.value as TaskStatus)}
                             className={`appearance-none pl-4 pr-10 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer outline-none border-none ${task.status === TaskStatus.COMPLETED
-                                ? 'bg-emerald-50 text-emerald-600'
-                                : task.status === TaskStatus.IN_PROGRESS
-                                  ? 'bg-blue-50 text-blue-600'
-                                  : 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 hover:bg-indigo-700'
+                              ? 'bg-emerald-50 text-emerald-600'
+                              : task.status === TaskStatus.IN_PROGRESS
+                                ? 'bg-blue-50 text-blue-600'
+                                : 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 hover:bg-indigo-700'
                               }`}
                           >
                             <option value={TaskStatus.TO_DO}>To Do</option>

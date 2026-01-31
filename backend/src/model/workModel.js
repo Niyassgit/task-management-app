@@ -27,6 +27,11 @@ const workModel = new Schema(
       ref: "User",
       required: true,
     },
+    assignedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
 
     status: {
       type: String,

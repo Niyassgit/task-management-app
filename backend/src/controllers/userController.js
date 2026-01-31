@@ -3,7 +3,9 @@ import Work from "../model/workModel.js";
 export const getAllWorks = async (req, res) => {
     try {
         const { userId } = req.user;
-        const works = await Work.find({ assignee: userId }).sort({ createdAt: -1 });
+        const works = await Work.find({ assignee: userId })
+            .populate("assignedBy", "name email workRole")
+            .sort({ createdAt: -1 });
 
         return res.status(200).json({
             success: true,

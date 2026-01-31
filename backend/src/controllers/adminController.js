@@ -42,6 +42,7 @@ export const createWork = async (req, res) => {
       overDue,
       assignee,
       priority,
+      assignedBy: req.user.userId,
     });
 
     if (!work) {

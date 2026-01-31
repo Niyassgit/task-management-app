@@ -8,12 +8,16 @@ import AuthLayout from "../components/AuthLayout";
 import { toast } from "react-toastify";
 
 import { Eye, EyeOff } from "lucide-react";
+import { connectSocket } from "../../../socket/socket";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -41,6 +45,7 @@ const LoginPage = () => {
       if (response.success) {
         toast.success("Login successful!");
         dispatch(login({ token: response.token, user: response.user }));
+        connectSocket(response.token);
 
         if (response.user?.role?.toLowerCase() === "admin") {
           navigate("/admin/dashboard");
@@ -51,15 +56,25 @@ const LoginPage = () => {
         toast.error(response.message || "Login failed");
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Login failed. Please check your credentials.");
+      toast.error(
+        err.response?.data?.message ||
+          "Login failed. Please check your credentials.",
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <AuthLayout title="Sign in" subtitle="Welcome back! Please sign in to continue">
-      <form className="w-full flex flex-col items-center justify-center" onSubmit={handleLogin} noValidate>
+    <AuthLayout
+      title="Sign in"
+      subtitle="Welcome back! Please sign in to continue"
+    >
+      <form
+        className="w-full flex flex-col items-center justify-center"
+        onSubmit={handleLogin}
+        noValidate
+      >
         <div className="flex flex-col w-full">
           <div className="flex items-center w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 gap-2">
             <svg
@@ -84,7 +99,11 @@ const LoginPage = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          {fieldErrors.email && <p className="text-red-500 text-xs mt-1 pl-4">{fieldErrors.email}</p>}
+          {fieldErrors.email && (
+            <p className="text-red-500 text-xs mt-1 pl-4">
+              {fieldErrors.email}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col w-full mt-6">
@@ -116,7 +135,11 @@ const LoginPage = () => {
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          {fieldErrors.password && <p className="text-red-500 text-xs mt-1 pl-4">{fieldErrors.password}</p>}
+          {fieldErrors.password && (
+            <p className="text-red-500 text-xs mt-1 pl-4">
+              {fieldErrors.password}
+            </p>
+          )}
         </div>
 
         <div className="w-full flex items-center justify-between mt-8 text-gray-500/80">

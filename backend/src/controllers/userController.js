@@ -1,4 +1,5 @@
 import Work from "../model/workModel.js";
+import { io } from "../server.js";
 
 export const getAllWorks = async (req, res) => {
     try {
@@ -37,6 +38,8 @@ export const updateWorkStatus = async (req, res) => {
                 message: "Task not found or unauthorized",
             });
         }
+
+        io.to(work.assignedBy.toString()).emit("work:updated", work);
 
         return res.status(200).json({
             success: true,

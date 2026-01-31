@@ -1,5 +1,6 @@
 import User from "../model/userModel.js";
 import Work from "../model/workModel.js";
+import { io } from "../server.js";
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -45,6 +46,7 @@ export const createWork = async (req, res) => {
       assignedBy: req.user.userId,
     });
 
+    io.to(assignee.toString()).emit("work:created", work);
     if (!work) {
       return res.status(400).json({
         success: false,
@@ -83,6 +85,7 @@ export const updateWork = async (req, res) => {
       { new: true, runValidators: true },
     );
 
+    io.to(assignee.toString()).emit("work:updated", work);
     if (!work) {
       return res.status(404).json({
         success: false,
@@ -116,6 +119,7 @@ export const deleteWork = async (req, res) => {
       });
     }
 
+    io.to(work.assignee.toString()).emit("work:deleted", work.id);
     return res.status(200).json({
       success: true,
       message: "Task has been deleted successfully",

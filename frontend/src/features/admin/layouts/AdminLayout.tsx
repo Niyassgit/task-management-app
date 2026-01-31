@@ -6,14 +6,47 @@ import AdminSidebar from "../components/AdminSidebar";
 import { Menu } from "lucide-react";
 import type { Task, User, AdminContextType } from "../types";
 import { getAllTasks, getAllUsers as fetchUsers } from "../api";
+import { connectSocket, disconnectSocket } from "../../../socket/socket";
 
 const AdminLayout: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const token = localStorage.getItem("accessToken");
     const [searchQuery, setSearchQuery] = useState("");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [users, setUsers] = useState<User[]>([]);
+
+    useEffect(() => {
+        const socket = connectSocket(token!);
+
+        const mapTask = (t: any) => ({
+            ...t,
+            id: t._id,
+            dueDate: t.overDue,
+            assignee: typeof t.assignee === 'string'
+                ? (users.find(u => u.id === t.assignee)?.name || "Unassigned")
+                : (t.assignee?.name || "Unassigned")
+        });
+
+        socket.on("work:created", (work: any) => {
+            setTasks(prev => [mapTask(work), ...prev]);
+        });
+
+        socket.on("work:updated", (work: any) => {
+            setTasks(prev => prev.map(t => t.id === work._id ? mapTask(work) : t));
+        });
+
+        socket.on("work:deleted", (taskId: string) => {
+            setTasks(prev => prev.filter(t => t.id !== taskId));
+        });
+
+        return () => {
+            socket.off("work:created");
+            socket.off("work:updated");
+            socket.off("work:deleted");
+        };
+    }, [token, users]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -23,7 +56,6 @@ const AdminLayout: React.FC = () => {
                     fetchUsers()
                 ]);
 
-                // Map backend data to frontend interface
                 const mappedTasks = (tasksData || []).map((t: any) => ({
                     ...t,
                     id: t._id,
@@ -49,6 +81,7 @@ const AdminLayout: React.FC = () => {
 
     const handleLogout = () => {
         dispatch(logout());
+        disconnectSocket();
         navigate("/login");
     };
 

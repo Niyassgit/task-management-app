@@ -38,7 +38,12 @@ const LoginPage = () => {
       const response = await loginApi({ email, password });
       if (response.success) {
         dispatch(login({ token: response.token, user: response.user }));
-        navigate("/user/Dashboard");
+
+        if (response.user?.role?.toLowerCase() === "admin") {
+          navigate("/admin/Dashboard");
+        } else {
+          navigate("/user/Dashboard");
+        }
       } else {
         setError(response.message || "Login failed");
       }

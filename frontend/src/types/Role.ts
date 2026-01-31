@@ -1,4 +1,1 @@
-export interface Role{
-    USER:"USER",
-    ADMIN:"ADMIN"
-}
+export type Role = "USER" | "ADMIN";

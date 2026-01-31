@@ -6,11 +6,20 @@ interface AuthState {
   user: AuthUser | null;
 }
 
+const getSafeUser = (): AuthUser | null => {
+  try {
+    const userStr = localStorage.getItem("user");
+    if (!userStr || userStr === "undefined") return null;
+    return JSON.parse(userStr);
+  } catch (error) {
+    console.error("Error parsing user from localStorage:", error);
+    return null;
+  }
+};
+
 const initialState: AuthState = {
   accessToken: localStorage.getItem("accessToken"),
-  user: localStorage.getItem("user")
-    ? JSON.parse(localStorage.getItem("user")!)
-    : null,
+  user: getSafeUser(),
 };
 
 const authSlice = createSlice({
@@ -37,5 +46,5 @@ const authSlice = createSlice({
   },
 });
 
-export const {login,logout}=authSlice.actions;
+export const { login, logout } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import LandingPage from "../features/landing/LandingPage";
 import { userRoutes } from "../routes/UserRoute";
+import { adminRoutes } from "../routes/AdminRoute";
 import LoginPage from "../features/auth/pages/LoginPage";
 import SignupPage from "../features/auth/pages/SignupPage";
 import ProtectedRoute from "../routes/ProtectedRoute";
@@ -20,6 +21,6 @@ export const router = createBrowserRouter([
   },
   {
     element: <ProtectedRoute />,
-    children: [userRoutes],
+    children: [userRoutes, adminRoutes],
   },
 ]);

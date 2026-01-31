@@ -21,6 +21,9 @@ export interface Task {
     status: TaskStatus;
     priority: TaskPriority;
     dueDate: string;
+    assignedBy?: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface User {

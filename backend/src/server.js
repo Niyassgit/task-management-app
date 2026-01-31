@@ -4,6 +4,7 @@ import app from "./app.js";
 import mongoose from "mongoose";
 import { Server } from "socket.io";
 import { socketAuth } from "./middlewares/socketAuth.js";
+import { startCronJobs } from "./services/cronService.js";
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -39,6 +40,8 @@ mongoose
   .connect(MONGODB_URI)
   .then(() => {
     console.log("Db is connected successfully ✅");
+
+    startCronJobs();
     server.listen(PORT, () => {
       console.log(`Server is running on the port http://localhost:${PORT}`);
     });

@@ -26,7 +26,10 @@ const AdminLayout: React.FC = () => {
             dueDate: t.overDue,
             assignee: typeof t.assignee === 'string'
                 ? (users.find(u => u.id === t.assignee)?.name || "Unassigned")
-                : (t.assignee?.name || "Unassigned")
+                : (t.assignee?.name || "Unassigned"),
+            assignedBy: t.assignedBy?.name || "Unknown",
+            createdAt: t.createdAt,
+            updatedAt: t.updatedAt
         });
 
         socket.on("work:created", (work: any) => {
@@ -60,7 +63,10 @@ const AdminLayout: React.FC = () => {
                     ...t,
                     id: t._id,
                     dueDate: t.overDue,
-                    assignee: t.assignee?.name || "Unassigned"
+                    assignee: t.assignee?.name || "Unassigned",
+                    assignedBy: t.assignedBy?.name || "Unknown",
+                    createdAt: t.createdAt,
+                    updatedAt: t.updatedAt
                 }));
 
                 const mappedUsers = (usersData || []).map((u: any) => ({

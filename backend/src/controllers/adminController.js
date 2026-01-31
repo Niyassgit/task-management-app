@@ -22,6 +22,7 @@ export const getAllWorksForAdmin = async (req, res) => {
   try {
     const works = await Work.find({})
       .populate("assignee", "name email")
+      .populate("assignedBy", "name")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({ success: true, data: works });
@@ -36,6 +37,21 @@ export const getAllWorksForAdmin = async (req, res) => {
 export const createWork = async (req, res) => {
   try {
     const { title, description, overDue, assignee, priority } = req.body;
+    const now = new Date();
+    const dueDate = new Date(overDue);
+
+    if (isNaN(dueDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid due date",
+      });
+    }
+    if (dueDate <= now) {
+      return res.status(400).json({
+        success: false,
+        message: "OverDue date must be a future date",
+      });
+    }
 
     const work = await Work.create({
       title,
